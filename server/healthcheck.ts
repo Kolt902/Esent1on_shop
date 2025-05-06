@@ -6,16 +6,7 @@ import { Express } from 'express';
 import { pool } from './db';
 
 export function setupHealthCheck(app: Express): void {
-  // Максимально простой корневой маршрут для Railway healthcheck
-  // Это САМЫЙ ВАЖНЫЙ маршрут для Railway - мы всегда возвращаем 200 OK
-  app.get('/', (req, res) => {
-    // Не делаем абсолютно никаких проверок здесь, просто мгновенный ответ "OK"
-    res.status(200).send('OK');
-  });
-  
-  // Маршруты "лови-всё" для корня, чтобы Railway Healthcheck всегда работал
-  app.head('/', (req, res) => res.status(200).end());
-  app.options('/', (req, res) => res.status(200).end());
+  // Переносим хелсчек на специальные маршруты
   
   // Подробный хелсчек для внутреннего использования
   app.get('/health', async (req, res) => {
@@ -53,5 +44,16 @@ export function setupHealthCheck(app: Express): void {
   
   app.get('/live', (req, res) => {
     res.status(200).send('live');
+  });
+  
+  // Эти маршруты мы оставляем для Railway, но выносим их в конец middleware chain
+  // Они используются только если ни один из других маршрутов не обработал запрос
+  app.use((req, res, next) => {
+    // Если маршрут / не был обработан другими middleware, то это запрос healthcheck
+    if (req.path === '/' && (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS')) {
+      return res.status(200).send('OK');
+    }
+    // В противном случае продолжаем обработку запроса
+    next();
   });
 }
