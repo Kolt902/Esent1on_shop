@@ -1,11 +1,9 @@
+# Самая простая конфигурация для Railway
 [build]
 builder = "NIXPACKS"
+nixpacksConfigPath = "nixpacks.toml"
 
 [deploy]
-# По умолчанию Railway использует Procfile, указывать команду старта не нужно
-restartPolicyType = "ON_FAILURE"
-# Полностью отключаем проверку здоровья
 healthcheckEnabled = false
-
-[env]
-NODE_ENV = "production"
+sleepApplication = false
+startCommand = "npm run start"
