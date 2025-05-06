@@ -64,34 +64,58 @@ export class TelegramBot {
     console.log("REPL_SLUG:", process.env.REPL_SLUG);
     console.log("REPL_OWNER:", process.env.REPL_OWNER);
     
-    // Используем специальную переменную окружения WEB_APP_URL, если она доступна
+    // Определяем окружение: PRODUCTION или DEVELOPMENT
+    const isProd = process.env.NODE_ENV === 'production';
+    
+    // В производственном окружении (Railway)
+    if (isProd) {
+      // Обязательно нужна переменная WEB_APP_URL для Railway
+      if (process.env.WEB_APP_URL) {
+        console.log(`Производственное окружение. Используем WEB_APP_URL: ${process.env.WEB_APP_URL}`);
+        return process.env.WEB_APP_URL;
+      } else {
+        console.warn("ВНИМАНИЕ: В производственном окружении не задана переменная WEB_APP_URL.");
+        console.warn("Telegram Mini App может работать некорректно!");
+        
+        // Fallback для Railway без WEB_APP_URL (на основе PORT)
+        // Это ненадежное решение, но лучше чем ничего
+        if (process.env.PORT) {
+          const url = `http://localhost:${process.env.PORT}`;
+          console.log(`Используем локальный URL для Railway: ${url}`);
+          return url;
+        }
+      }
+    }
+    
+    // В окружении разработки (Replit)
+    // Приоритет 1: Используем WEB_APP_URL, если она задана вручную
     if (process.env.WEB_APP_URL) {
-      console.log("Используем WEB_APP_URL:", process.env.WEB_APP_URL);
+      console.log(`Используем WEB_APP_URL: ${process.env.WEB_APP_URL}`);
       return process.env.WEB_APP_URL;
     }
     
-    // Приоритет 1: Используем REPLIT_DEV_DOMAIN - наиболее надежный вариант в Replit
+    // Приоритет 2: Используем REPLIT_DEV_DOMAIN - наиболее надежный вариант в Replit
     if (process.env.REPLIT_DEV_DOMAIN) {
       const url = `https://${process.env.REPLIT_DEV_DOMAIN}`;
       console.log("Используем REPLIT_DEV_DOMAIN:", url);
       return url;
     }
     
-    // Приоритет 2: Используем REPLIT_DOMAINS
+    // Приоритет 3: Используем REPLIT_DOMAINS
     if (process.env.REPLIT_DOMAINS) {
       const url = `https://${process.env.REPLIT_DOMAINS}`;
       console.log("Используем REPLIT_DOMAINS:", url);
       return url;
     }
     
-    // Приоритет 3: Используем новый формат id.repl.co
+    // Приоритет 4: Используем новый формат id.repl.co
     if (process.env.REPL_ID) {
       const url = `https://${process.env.REPL_ID}.id.repl.co`;
       console.log("Используем REPL_ID:", url);
       return url;
     }
     
-    // Приоритет 4: Используем формат REPL_SLUG.REPL_OWNER.repl.co
+    // Приоритет 5: Используем формат REPL_SLUG.REPL_OWNER.repl.co
     if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
       const url = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
       console.log("Используем REPL_SLUG и REPL_OWNER:", url);
@@ -340,15 +364,56 @@ export class TelegramBot {
   // Start long polling for updates
   public async startPolling(): Promise<void> {
     try {
+      // Проверяем окружение и настраиваем правильный режим в зависимости от production/development
+      const isProd = process.env.NODE_ENV === 'production';
+      
       // First, delete any existing webhook
       await this.deleteWebhook();
+      
+      // В производственном режиме, проверяем URL для webhook
+      if (isProd && process.env.WEB_APP_URL) {
+        // Для Railway и других хостингов можно использовать webhook вместо поллинга
+        // Это более эффективно для высоконагруженных ботов
+        console.log("Производственное окружение с указанным WEB_APP_URL обнаружено.");
+        console.log("Можно настроить webhook вместо поллинга для более эффективной работы.");
+        console.log("Однако, по умолчанию используем поллинг для совместимости.");
+        
+        // Раскомментируйте и настройте код ниже для использования webhook в production
+        // const webhookUrl = `${process.env.WEB_APP_URL}/api/telegram/webhook`;
+        // const webhookSet = await this.setWebhook(webhookUrl);
+        // if (webhookSet) {
+        //   console.log(`Webhook успешно установлен на ${webhookUrl}`);
+        //   return; // Выходим из метода, т.к. при использовании webhook поллинг не нужен
+        // } else {
+        //   console.warn("Не удалось установить webhook, переключаемся на поллинг");
+        // }
+      }
+      
+      // В режиме разработки выводим упрощенное сообщение и не запускаем настоящий поллинг
+      if (!isProd) {
+        console.log('Запуск в режиме разработки, настоящий поллинг не запускается');
+        return;
+      }
       
       console.log('Starting Telegram updates polling...');
       
       let offset = 0;
       
+      // Флаг для контроля цикла поллинга
+      let isPolling = true;
+      
+      // Функция для остановки поллинга при завершении приложения
+      const stopPolling = () => {
+        console.log("Stopping Telegram polling...");
+        isPolling = false;
+      };
+      
+      // Регистрируем обработчики завершения приложения
+      process.on('SIGINT', stopPolling);
+      process.on('SIGTERM', stopPolling);
+      
       // Continuous polling loop
-      while (true) {
+      while (isPolling) {
         try {
           const url = `${this.apiBaseUrl}/getUpdates?offset=${offset}&timeout=30`;
           const response = await fetch(url);
@@ -385,6 +450,8 @@ export class TelegramBot {
           await new Promise(resolve => { setTimeout(resolve, 5000); });
         }
       }
+      
+      console.log("Telegram polling stopped");
     } catch (error) {
       console.error('Error in startPolling:', error);
     }
