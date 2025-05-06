@@ -1,17 +1,14 @@
 [build]
-builder = "DOCKERFILE"
-dockerfile = "Dockerfile"
+builder = "NIXPACKS"
+buildCommand = "npm run build"
 
 [deploy]
-startCommand = "./start.sh"
+startCommand = "npm start"
 restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
 healthcheckPath = "/"
 healthcheckTimeout = 10
+sleepApplication = false
 
 [env]
 NODE_ENV = "production"
-
-[service]
-internal_port = 8080
-auto_deploy = true
+PORT = "8080"
