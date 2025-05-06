@@ -66,6 +66,15 @@ const checkAdmin = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Простой статус API для проверки работоспособности
+  app.get('/api/status', (_req, res) => {
+    res.json({ 
+      status: 'ok',
+      version: process.env.npm_package_version || '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      timestamp: new Date().toISOString()
+    });
+  });
   const apiRouter = express.Router();
   
   // Telegram Bot webhook endpoint
@@ -269,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Получаем все уникальные категории из базы данных
       const allProducts = await storage.getProducts();
-      const uniqueCategories = [...new Set(allProducts.map(p => p.category))];
+      const uniqueCategories = Array.from(new Set(allProducts.map(p => p.category)));
       
       // Определяем фиксированные категории для интерфейса
       const categories = [
