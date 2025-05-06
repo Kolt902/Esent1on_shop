@@ -1,9 +1,13 @@
-# Самая простая конфигурация для Railway
+# Оптимизированная конфигурация для Railway
 [build]
 builder = "NIXPACKS"
 nixpacksConfigPath = "nixpacks.toml"
 
 [deploy]
-healthcheckEnabled = false
+# Включаем healthcheck через собственный скрипт
+healthcheckPath = "/"
+healthcheckTimeout = 10
+restartPolicyMaxRetries = 5
+restartPolicyType = "ON_FAILURE"
 sleepApplication = false
-startCommand = "npm run start"
+startCommand = "bash start.sh"
