@@ -10,4 +10,4 @@ healthcheckTimeout = 10
 restartPolicyMaxRetries = 5
 restartPolicyType = "ON_FAILURE"
 sleepApplication = false
-startCommand = "bash start.sh"
+startCommand = "npm run start"
