@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { telegramBot } from "./telegram";
+import { setupHealthCheck } from "./healthcheck";
 
 const app = express();
 app.use(express.json());
@@ -38,6 +39,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Добавляем проверку здоровья для Railway
+  setupHealthCheck(app);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
