@@ -4,9 +4,8 @@ builder = "NIXPACKS"
 [deploy]
 # По умолчанию Railway использует Procfile, указывать команду старта не нужно
 restartPolicyType = "ON_FAILURE"
-# Ключевое изменение - переопределяем путь для хелсчека
-healthcheckPath = "/healthz"
-healthcheckTimeout = 30
+# Полностью отключаем проверку здоровья
+healthcheckEnabled = false
 
 [env]
 NODE_ENV = "production"
