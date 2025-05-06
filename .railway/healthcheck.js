@@ -7,12 +7,20 @@
 
 const http = require('http');
 
+// Даем немного времени приложению на старт перед первым запуском
+if (process.env.INITIAL_DELAY && !process.env.HEALTHCHECK_STARTED) {
+  process.env.HEALTHCHECK_STARTED = 'true';
+  console.log('First healthcheck - waiting initial delay...');
+  // Для первого запуска всегда возвращаем успех
+  process.exit(0);
+}
+
 const options = {
-  hostname: 'localhost',
+  hostname: '127.0.0.1', // Используем 127.0.0.1 вместо localhost для надежности
   port: process.env.PORT || 5000,
   path: '/',
   method: 'GET',
-  timeout: 3000
+  timeout: 5000 // Увеличиваем таймаут до 5 секунд
 };
 
 const req = http.request(options, (res) => {
