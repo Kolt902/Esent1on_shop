@@ -1,12 +1,17 @@
 [build]
 builder = "DOCKERFILE"
-watchPatterns = ["dist/**", "server/**", "client/**"]
-dockerfilePath = "Dockerfile"
+dockerfile = "Dockerfile"
 
 [deploy]
-numReplicas = 1
+startCommand = "./start.sh"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
+healthcheckPath = "/"
+healthcheckTimeout = 10
 
-[runtime]
-environmentVariables = ["PGDATABASE", "PGUSER", "PGPASSWORD", "PGHOST", "PGPORT"]
+[env]
+NODE_ENV = "production"
+
+[service]
+internal_port = 8080
+auto_deploy = true
