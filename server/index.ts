@@ -63,7 +63,11 @@ app.use((req, res, next) => {
 
   // Для Railway и других хостинг-платформ используем PORT из переменных окружения,
   // а в Replit - порт 5000, который не блокируется фаерволом
-  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
+  // При использовании Docker, по умолчанию порт 8080
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 
+    process.env.NODE_ENV === 'production' ? 8080 : 5000;
+    
+  console.log(`Starting server in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
   server.listen({
     port,
     host: "0.0.0.0",
