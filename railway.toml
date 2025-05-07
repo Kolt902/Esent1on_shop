@@ -8,7 +8,7 @@ buildCommand = "node railway-build.js"
 healthcheckEnabled = false
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-startCommand = "npm run start"
+startCommand = "node prod-start.js"
 sleepApplication = false
 
 [env]
