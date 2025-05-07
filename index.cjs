@@ -57,6 +57,12 @@ app.get('/healthcheck', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Поддержка Telegram Mini App инициализации
+app.post('/telegram-init', (req, res) => {
+  console.log('Received Telegram WebApp init data');
+  res.json({ status: 'ok', telegramInitReceived: true });
+});
+
 // API заглушки
 app.get('/api/categories', (req, res) => {
   res.json({ categories: ['sneakers', 'hoodies', 'tshirts', 'pants'] });
@@ -96,12 +102,14 @@ app.get('*', (req, res) => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <title>Esention Store - API Server</title>
+          <script src="https://telegram.org/js/telegram-web-app.js"></script>
           <style>
             body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
             .container { max-width: 800px; margin: 0 auto; }
             h1 { color: #333; }
             .status { padding: 15px; background: #f5f5f5; border-radius: 5px; }
             .status-ok { color: green; }
+            .telegram-widget { margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px; }
           </style>
         </head>
         <body>
@@ -112,7 +120,42 @@ app.get('*', (req, res) => {
               <p><strong>Статус:</strong> <span class="status-ok">API Сервер работает</span></p>
               <p><strong>Время:</strong> ${new Date().toLocaleString()}</p>
             </div>
+            <div class="telegram-widget">
+              <h2>Telegram Mini App</h2>
+              <p>Для корректной работы, пожалуйста откройте приложение через Telegram.</p>
+              <div id="telegram-info"></div>
+            </div>
           </div>
+          <script>
+            // Проверяем инициализацию Telegram Mini App
+            document.addEventListener('DOMContentLoaded', function() {
+              const infoElement = document.getElementById('telegram-info');
+              if (window.Telegram && window.Telegram.WebApp) {
+                infoElement.innerHTML = '<p style="color: green;">Telegram Mini App инициализирован успешно!</p>';
+                
+                // Отправляем данные инициализации на сервер
+                fetch('/telegram-init', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ 
+                    initDataUnsafe: window.Telegram.WebApp.initDataUnsafe,
+                    version: window.Telegram.WebApp.version
+                  })
+                })
+                .then(response => response.json())
+                .then(data => {
+                  console.log('Telegram init data sent to server');
+                })
+                .catch(error => {
+                  console.error('Error sending Telegram init data:', error);
+                });
+              } else {
+                infoElement.innerHTML = '<p style="color: orange;">Telegram Mini App не инициализирован. Возможно, вы открыли страницу напрямую, а не через Telegram.</p>';
+              }
+            });
+          </script>
         </body>
       </html>
     `);

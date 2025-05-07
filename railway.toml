@@ -14,3 +14,4 @@ sleepApplication = false
 [env]
 PORT = "8080"
 NODE_ENV = "production"
+WEB_APP_URL = "https://esentioshop-production-up.up.railway.app"
