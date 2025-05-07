@@ -1,101 +1,195 @@
 /**
- * Супер простой Express.js сервер
- * Не имеет зависимостей от других файлов проекта
+ * Автономное Express приложение для Railway
+ * Оптимизировано для стабильной работы и прохождения проверок здоровья
  */
 
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware для логирования
+// Настройка CORS
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, telegram-data');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
   next();
 });
 
-// Простые API эндпоинты
+// Логирование запросов
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// Парсинг JSON и URL-encoded данных
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Статические файлы
+let clientBuildPath = path.resolve(__dirname, 'client-build');
+if (fs.existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath));
+  console.log(`Serving static files from ${clientBuildPath}`);
+} else {
+  console.log(`Static files path not found: ${clientBuildPath}`);
+  // Пробуем найти путь к статическим файлам
+  const possiblePaths = [
+    path.resolve(__dirname, '../client-build'),
+    path.resolve(__dirname, '../dist'),
+    path.resolve(__dirname, '../build'),
+    path.resolve(__dirname, '../public')
+  ];
+  
+  for (const testPath of possiblePaths) {
+    if (fs.existsSync(testPath)) {
+      clientBuildPath = testPath;
+      app.use(express.static(testPath));
+      console.log(`Found and serving static files from ${testPath}`);
+      break;
+    }
+  }
+}
+
+// Маршрут для проверки здоровья
 app.get('/healthcheck', (req, res) => {
-  res.json({ status: 'ok' });
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'production'
+  });
 });
 
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'API работает!' });
+// API маршруты
+const brands = ['Nike', 'Adidas', 'Jordan', 'Gucci', 'Balenciaga', 'Puma', 'Stussy', 'Burberry', 'Chanel', 'Saint Laurent', 'Dior', 'Cartier'];
+const categories = ['sneakers', 'hoodies', 'tshirts', 'pants', 'jackets', 'accessories'];
+const styles = ['streetwear', 'casual', 'sport', 'luxury', 'oldmoney'];
+
+app.get('/api/brands', (req, res) => {
+  res.json({ brands });
 });
 
-// Статическая HTML страница
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Standalone Express App</title>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          margin: 0;
-          padding: 30px;
-          line-height: 1.6;
-          color: #333;
-        }
-        .container {
-          max-width: 800px;
-          margin: 0 auto;
-          background-color: #f9f9f9;
-          padding: 20px;
-          border-radius: 5px;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        h1 {
-          color: #2c3e50;
-          margin-top: 0;
-        }
-        .info {
-          background-color: #e8f4f8;
-          padding: 15px;
-          border-radius: 4px;
-          margin-bottom: 20px;
-        }
-        .api-list {
-          background-color: #f5f5f5;
-          padding: 15px;
-          border-radius: 4px;
-        }
-        code {
-          background-color: #eee;
-          padding: 2px 4px;
-          border-radius: 3px;
-          font-family: monospace;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>Standalone Express App</h1>
-        
-        <div class="info">
-          <p><strong>Статус:</strong> Работает</p>
-          <p><strong>Порт:</strong> ${PORT}</p>
-          <p><strong>Окружение:</strong> ${process.env.NODE_ENV || 'development'}</p>
-          <p><strong>Время сервера:</strong> ${new Date().toLocaleString()}</p>
+app.get('/api/categories', (req, res) => {
+  res.json({ categories });
+});
+
+app.get('/api/styles', (req, res) => {
+  res.json({ styles });
+});
+
+app.get('/api/products', (req, res) => {
+  // Возвращаем пустой массив, чтобы API работал
+  res.json({ products: [] });
+});
+
+app.get('/api/admin/check', (req, res) => {
+  res.json({ isAdmin: false });
+});
+
+// Маршрут-заглушка для Telegram WebHook
+app.post('/telegram/webhook', (req, res) => {
+  console.log('Получен запрос webhook:', req.body);
+  res.status(200).json({ ok: true });
+});
+
+// Обслуживание SPA - все неизвестные маршруты отправляют index.html
+app.get('*', (req, res) => {
+  // Пробуем отправить index.html если он существует
+  const indexPath = path.join(clientBuildPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    // Если файла нет, отправляем базовую HTML страницу
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Esention Store</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
+          h1 {
+            color: #28a745;
+            margin-bottom: 20px;
+          }
+          p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+          }
+          .endpoint {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+          }
+          .status {
+            margin-top: 30px;
+            font-size: 16px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>✅ Esention Store - Сервер запущен!</h1>
+          <p>
+            Этот сервер настроен для работы с Telegram Mini App.
+            Он предоставляет API для взаимодействия с приложением.
+          </p>
+          <p>Доступные API-эндпоинты:</p>
+          <div>
+            <a href="/api/categories" class="endpoint">Categories</a>
+            <a href="/api/brands" class="endpoint">Brands</a>
+            <a href="/api/styles" class="endpoint">Styles</a>
+            <a href="/api/products" class="endpoint">Products</a>
+            <a href="/healthcheck" class="endpoint">Health Check</a>
+          </div>
+          <div class="status">
+            <p>Статус: <strong>Онлайн</strong></p>
+            <p>Время: <strong>${new Date().toLocaleString()}</strong></p>
+          </div>
         </div>
-        
-        <div class="api-list">
-          <h2>Доступные API эндпоинты:</h2>
-          <ul>
-            <li><code>/healthcheck</code> - Проверка здоровья сервера</li>
-            <li><code>/api/test</code> - Тестовый API эндпоинт</li>
-          </ul>
-        </div>
-      </div>
-    </body>
-    </html>
-  `);
+      </body>
+      </html>
+    `);
+  }
+});
+
+// Обработка ошибок
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message
+  });
 });
 
 // Запуск сервера
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Health check available at: http://localhost:${PORT}/healthcheck`);
 });
+
+module.exports = app;

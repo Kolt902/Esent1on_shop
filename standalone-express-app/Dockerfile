@@ -1,23 +1,33 @@
-FROM node:20-slim
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
+# Копируем только необходимые файлы для установки зависимостей
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm install
+# Устанавливаем только production зависимости
+RUN npm ci --only=production
 
-# Копируем код приложения
-COPY . .
+# Копируем приложение
+COPY ./standalone-express-app/app.js .
+COPY ./standalone-express-app/run.sh .
+COPY ./standalone-express-app/package.json .
 
-# Устанавливаем порт
-ENV PORT=8080
-ENV NODE_ENV=production
+# Проверяем наличие клиентских файлов и копируем их если они есть
+COPY ./client-build ./client-build
 
-# Проверка здоровья
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:${PORT}/healthcheck || exit 1
+# Создаем пользователя для безопасности
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 && \
+    chmod +x ./run.sh && \
+    chown -R nodejs:nodejs /app
 
-# Запускаем приложение
-CMD ["node", "app.js"]
+# Переключаемся на непривилегированного пользователя
+USER nodejs
+
+# Используем порт из переменной окружения Railway или 3000 по умолчанию
+ENV PORT=3000
+EXPOSE $PORT
+
+# Запускаем с помощью скрипта, который проверяет соединение с базой данных
+CMD ["./run.sh"]
