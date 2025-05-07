@@ -5,7 +5,7 @@ nixPkgs = ["nodejs_20"]
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["./module-type-fix.sh", "npx vite build", "cp app-entry.js /app/", "cp telegram-webapp-server.js /app/"]
+cmds = ["./module-type-fix.sh", "npx vite build", "cp app-entry.js /app/", "cp telegram-webapp-server.cjs /app/"]
 
 [start]
-cmd = "node telegram-webapp-server.js"
+cmd = "node telegram-webapp-server.cjs"

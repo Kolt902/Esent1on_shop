@@ -6,9 +6,9 @@ buildCommand = "./module-type-fix.sh && npx vite build"
 [deploy]
 # Полностью отключаем проверку здоровья
 healthcheckEnabled = false
-restartPolicyType = "ON_FAILURE"
+restartPolicyType = "ON_FAILURE" 
 restartPolicyMaxRetries = 10
-startCommand = "node telegram-webapp-server.js"
+startCommand = "node telegram-webapp-server.cjs"
 sleepApplication = false
 
 [env]
