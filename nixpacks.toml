@@ -5,7 +5,7 @@ nixPkgs = ["nodejs_20"]
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["node railway-build.js"]
+cmds = ["npx vite build"]
 
 [start]
-cmd = "node dist/index.js"
+cmd = "node direct-server.js"
