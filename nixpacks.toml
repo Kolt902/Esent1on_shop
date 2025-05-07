@@ -5,7 +5,7 @@ nixPkgs = ["nodejs_20"]
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["npx vite build", "cp app-entry.js /app/", "cp index.js /app/"]
+cmds = ["./module-type-fix.sh", "npx vite build", "cp app-entry.js /app/", "cp index.cjs /app/"]
 
 [start]
-cmd = "node app-entry.js"
+cmd = "node index.cjs"

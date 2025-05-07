@@ -1,6 +1,7 @@
 # Максимально простая конфигурация
 [build]
-builder = "DOCKERFILE"
+builder = "NIXPACKS"
+buildCommand = "./module-type-fix.sh && npx vite build"
 
 [deploy]
 # Полностью отключаем проверку здоровья
