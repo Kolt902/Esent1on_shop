@@ -3,13 +3,13 @@ builder = "NIXPACKS"
 nixpacksVersion = "1.17.0"
 
 [deploy]
-startCommand = "node dual-server.cjs"
+startCommand = "node minimal-app.cjs"
 healthcheckPath = "/healthcheck"
 healthcheckTimeout = 300
 healthcheckInterval = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-sleepApplication = false  # Очень важно, чтобы приложение не перешло в спящий режим
+sleepApplication = false
 
 [deploy.envs]
 PORT = { default = 8080 }
