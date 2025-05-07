@@ -1,0 +1,16 @@
+{
+  "name": "standalone-express-app",
+  "version": "1.0.0",
+  "description": "Standalone Express.js application for Railway",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

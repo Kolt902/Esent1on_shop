@@ -9,6 +9,9 @@
     "restartPolicyMaxRetries": 10,
     "healthcheckPath": "/healthcheck",
     "healthcheckTimeout": 300,
-    "healthcheckInterval": 60
+    "healthcheckInterval": 60,
+    "numReplicas": 1,
+    "sleepApplication": false,
+    "startCommand": "node express-server.cjs"
   }
 }

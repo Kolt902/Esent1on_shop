@@ -5,7 +5,7 @@ WORKDIR /app
 # Копируем файлы, необходимые для установки зависимостей
 COPY package*.json ./
 COPY module-type-fix.sh ./
-COPY docker-server.js ./
+COPY express-server.cjs ./
 
 # Делаем скрипт исполняемым
 RUN chmod +x module-type-fix.sh
@@ -22,6 +22,9 @@ COPY . .
 # Выполняем сборку клиентской части
 RUN npx vite build
 
+# Проверяем содержимое директории
+RUN ls -la dist || echo "Директория dist не существует"
+
 # Устанавливаем переменные окружения
 ENV PORT=8080
 ENV NODE_ENV=production
@@ -32,4 +35,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:${PORT}/healthcheck || exit 1
 
 # Запускаем сервер
-CMD ["node", "docker-server.js"]
+CMD ["node", "express-server.cjs"]
