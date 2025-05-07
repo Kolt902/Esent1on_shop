@@ -5,7 +5,7 @@ nixPkgs = ["nodejs_20"]
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["./module-type-fix.sh", "npx vite build", "cp absolute-minimal.cjs /app/"]
+cmds = ["./module-type-fix.sh", "npx vite build", "cp full-server.cjs /app/"]
 
 [start]
-cmd = "node absolute-minimal.cjs"
+cmd = "node full-server.cjs"
