@@ -1,18 +1,16 @@
-# Максимально простая конфигурация
 [build]
 builder = "NIXPACKS"
-buildCommand = "./module-type-fix.sh && npx vite build"
+nixpacksVersion = "1.17.0"
 
 [deploy]
-# Абсолютно минимальный сервер для диагностики Railway
-healthcheckEnabled = true
-healthcheckPath = "/healthcheck"  
-restartPolicyType = "ON_FAILURE" 
+startCommand = "node full-server.cjs"
+healthcheckPath = "/healthcheck"
+healthcheckTimeout = 300
+healthcheckInterval = 60
+restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-startCommand = "node absolutely-minimal.cjs"
-sleepApplication = false
+sleepApplication = false  # Очень важно, чтобы приложение не перешло в спящий режим
 
-[env]
-PORT = "8080"
-NODE_ENV = "production"
-WEB_APP_URL = "https://esentioshop-production-up.up.railway.app"
+[deploy.envs]
+PORT = { default = 8080 }
+NODE_ENV = { default = "production" }

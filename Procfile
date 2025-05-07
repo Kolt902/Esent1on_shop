@@ -1,1 +1,1 @@
-web: node absolutely-minimal.cjs
+web: node full-server.cjs

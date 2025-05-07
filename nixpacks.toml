@@ -1,11 +1,12 @@
 [phases.setup]
-nixPkgs = ["nodejs_20"]
-
-[phases.install]
-cmds = ["npm ci"]
+nixPackages = ["nodejs_20"]
+aptPkgs = ["curl"]
 
 [phases.build]
-cmds = ["./module-type-fix.sh", "npx vite build", "cp absolutely-minimal.cjs /app/"]
+cmds = ["npm ci --production", "npm run postinstall --if-present"]
+
+[phases.cleanup]
+cmds = ["rm -rf .git", "rm -rf node_modules/.cache"]
 
 [start]
-cmd = "node absolutely-minimal.cjs"
+cmd = "node full-server.cjs"
