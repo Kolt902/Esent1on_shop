@@ -6,8 +6,20 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const TelegramBot = require('./telegram-bot');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Инициализация бота, если есть токен
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+let bot = null;
+
+if (TELEGRAM_BOT_TOKEN) {
+  bot = new TelegramBot(TELEGRAM_BOT_TOKEN);
+  console.log('Telegram bot initialized');
+} else {
+  console.log('No Telegram bot token provided, bot features disabled');
+}
 
 // Настройка CORS
 app.use((req, res, next) => {
@@ -91,10 +103,77 @@ app.get('/api/admin/check', (req, res) => {
   res.json({ isAdmin: false });
 });
 
-// Маршрут-заглушка для Telegram WebHook
-app.post('/telegram/webhook', (req, res) => {
+// Маршруты Telegram
+app.post('/telegram/webhook', async (req, res) => {
   console.log('Получен запрос webhook:', req.body);
+  
+  // Обрабатываем запрос только если бот инициализирован
+  if (bot && req.body) {
+    try {
+      const update = req.body;
+      
+      // Обработка сообщений
+      if (update.message) {
+        const { chat, text } = update.message;
+        
+        // Обработка команды /start
+        if (text === '/start') {
+          await bot.sendMessage(chat.id, 'Добро пожаловать в Esention Store! Нажмите на кнопку ниже, чтобы открыть магазин.', {
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: 'Открыть магазин', web_app: { url: process.env.WEB_APP_URL || 'https://esention-store.up.railway.app' } }]
+              ]
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка обработки webhook:', error);
+    }
+  }
+  
+  // Всегда отвечаем успехом, даже если произошла ошибка обработки
   res.status(200).json({ ok: true });
+});
+
+// Настройка бота
+app.get('/telegram/setup', async (req, res) => {
+  if (!bot) {
+    return res.status(400).json({ error: 'Bot not initialized, token missing' });
+  }
+
+  try {
+    // Настраиваем команды бота
+    const commandsResult = await bot.setMyCommands([
+      { command: 'start', description: 'Запустить бота' },
+      { command: 'help', description: 'Получить помощь' },
+      { command: 'shop', description: 'Открыть магазин' }
+    ]);
+
+    // Если указан WEB_APP_URL, настраиваем webhook
+    const webhookUrl = process.env.WEBHOOK_URL;
+    let webhookResult = { ok: false, info: 'Webhook not set - no URL' };
+    
+    if (webhookUrl) {
+      webhookResult = await bot.setWebhook(webhookUrl);
+    } else {
+      // Если webhook не указан, используем long polling
+      webhookResult = await bot.deleteWebhook(true);
+    }
+
+    // Получаем информацию о webhook
+    const webhookInfo = await bot.getWebhookInfo();
+
+    res.json({
+      commands: commandsResult,
+      webhook: webhookResult,
+      webhookInfo,
+      webAppUrl: process.env.WEB_APP_URL || 'Not set'
+    });
+  } catch (error) {
+    console.error('Ошибка настройки бота:', error);
+    res.status(500).json({ error: 'Failed to setup bot', message: error.message });
+  }
 });
 
 // Обслуживание SPA - все неизвестные маршруты отправляют index.html
@@ -186,10 +265,37 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Запуск сервера
-app.listen(PORT, '0.0.0.0', () => {
+// Запуск сервера и инициализация бота
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check available at: http://localhost:${PORT}/healthcheck`);
+  
+  // Инициализация бота
+  if (bot) {
+    try {
+      const host = process.env.HOST || `localhost:${PORT}`;
+      console.log(`Bot initialized. Use ${host}/telegram/setup to configure webhook.`);
+      
+      // Автоматическая настройка бота, если указан WEBHOOK_URL
+      if (process.env.WEBHOOK_URL) {
+        console.log(`Setting up webhook to: ${process.env.WEBHOOK_URL}`);
+        const webhookResult = await bot.setWebhook(process.env.WEBHOOK_URL);
+        console.log('Webhook setup result:', webhookResult);
+        
+        // Настраиваем команды бота
+        const commandsResult = await bot.setMyCommands([
+          { command: 'start', description: 'Запустить бота' },
+          { command: 'help', description: 'Получить помощь' },
+          { command: 'shop', description: 'Открыть магазин' }
+        ]);
+        console.log('Bot commands setup result:', commandsResult);
+      } else {
+        console.log('No WEBHOOK_URL provided, webhook not configured automatically.');
+      }
+    } catch (error) {
+      console.error('Failed to initialize bot:', error);
+    }
+  }
 });
 
 module.exports = app;
