@@ -1,14 +1,12 @@
 # Максимально простая конфигурация
 [build]
-builder = "NIXPACKS"
-buildCommand = "npx vite build"
+builder = "DOCKERFILE"
 
 [deploy]
 # Полностью отключаем проверку здоровья
 healthcheckEnabled = false
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-startCommand = "node app-entry.js"
 sleepApplication = false
 
 [env]
