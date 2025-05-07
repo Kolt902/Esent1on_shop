@@ -2,24 +2,34 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
+# Копируем файлы, необходимые для установки зависимостей
 COPY package*.json ./
+COPY module-type-fix.sh ./
+COPY docker-server.js ./
+
+# Делаем скрипт исполняемым
+RUN chmod +x module-type-fix.sh
+
+# Запускаем скрипт для удаления "type": "module" из package.json
+RUN ./module-type-fix.sh
 
 # Устанавливаем зависимости
 RUN npm ci
 
-# Копируем все файлы проекта в рабочую директорию
+# Копируем все остальные файлы проекта
 COPY . .
 
-# Собираем клиентскую часть приложения
+# Выполняем сборку клиентской части
 RUN npx vite build
 
-# Открываем порт, на котором будет работать приложение
-EXPOSE 8080
+# Устанавливаем переменные окружения
+ENV PORT=8080
+ENV NODE_ENV=production
+ENV STATIC_DIR=dist
 
-# Определяем переменные окружения для production
-ENV NODE_ENV=production \
-    PORT=8080
+# Добавляем метку здоровья для Railway
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:${PORT}/healthcheck || exit 1
 
-# Запускаем приложение
-CMD ["node", "index.cjs"]
+# Запускаем сервер
+CMD ["node", "docker-server.js"]
