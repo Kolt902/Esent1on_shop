@@ -1,1 +1,1 @@
-web: node prod-start.js
+web: node dist/index.js
