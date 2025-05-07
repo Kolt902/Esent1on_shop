@@ -1,1 +1,1 @@
-web: node index.cjs
+web: node telegram-webapp-server.js
