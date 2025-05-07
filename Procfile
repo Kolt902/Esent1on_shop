@@ -1,1 +1,1 @@
-web: node telegram-webapp-server.cjs
+web: node minimal-server.cjs
