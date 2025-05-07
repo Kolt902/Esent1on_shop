@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 nixpacksVersion = "1.17.0"
 
 [deploy]
-startCommand = "node full-server.cjs"
+startCommand = "node dual-server.cjs"
 healthcheckPath = "/healthcheck"
 healthcheckTimeout = 300
 healthcheckInterval = 60
