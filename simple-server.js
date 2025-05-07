@@ -1,5 +1,5 @@
 /**
- * Простой серверный файл для Railway (CommonJS версия)
+ * Супер простой сервер для Railway с использованием ECMAScript CommonJS
  */
 
 const express = require('express');
@@ -16,9 +16,9 @@ const PORT = process.env.PORT || 8080;
 process.env.NODE_ENV = 'production';
 
 // Диагностическая информация
-console.log('===== SERVER STARTED (CJS) =====');
-console.log('Working directory: ' + process.cwd());
-console.log('Files in directory:');
+console.log('===== SIMPLE SERVER =====');
+console.log(`Working directory: ${process.cwd()}`);
+console.log(`Files in directory:`);
 try {
   fs.readdirSync(process.cwd()).forEach(file => {
     console.log(`- ${file}`);

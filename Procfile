@@ -1,1 +1,1 @@
-web: node minimal-server.cjs
+web: node direct-server.js
