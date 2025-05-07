@@ -1,1 +1,1 @@
-web: node express-mini.cjs
+web: node index.cjs

@@ -1,16 +1,27 @@
 [build]
-builder = "NIXPACKS"
-nixpacksVersion = "1.17.0"
+builder = "nixpacks"
+# Простой сервер без webpack/vite/etc
+buildCommand = "echo 'No build required for simple server'"
 
 [deploy]
-startCommand = "node express-mini.cjs"
+# Запускаем минимальный сервер без зависимостей от других модулей
+startCommand = "node index.cjs"
 healthcheckPath = "/healthcheck"
-healthcheckTimeout = 300
-healthcheckInterval = 60
-restartPolicyType = "ON_FAILURE"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
-sleepApplication = false
 
-[deploy.envs]
-PORT = { default = 3000 }
-NODE_ENV = { default = "production" }
+[[services]]
+internal_port = 3000
+protocol = "tcp"
+
+  [[services.ports]]
+  handlers = ["http"]
+  port = 80
+
+  [[services.ports]]
+  handlers = ["tls", "http"]
+  port = 443
+  
+[environments.production]
+numReplicas = 1
