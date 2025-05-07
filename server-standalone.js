@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Прямой запускаемый сервер для Railway без каких-либо зависимостей от Vite
+ * Автономный сервер для Railway в CommonJS формате
+ * Не имеет зависимостей от других файлов проекта
  */
 
 const express = require('express');
@@ -10,11 +11,9 @@ const path = require('path');
 const fs = require('fs');
 const { Pool } = require('@neondatabase/serverless');
 const ws = require('ws');
-const { createServer } = require('http');
 const { WebSocketServer } = require('ws');
 
-// Настраиваем базовые пути и переменные
-// Используем CommonJS методы для получения пути файла
+// Настройка базовых путей и переменных
 const __dirname = process.cwd();
 
 // Базовый порт и настройки окружения
@@ -26,7 +25,7 @@ const { neonConfig } = require('@neondatabase/serverless');
 neonConfig.webSocketConstructor = ws;
 
 // Вывод диагностической информации
-console.log('===== DIRECT SERVER =====');
+console.log('===== STANDALONE SERVER =====');
 console.log('Working directory: ' + process.cwd());
 console.log('NODE_ENV: ' + process.env.NODE_ENV);
 console.log('PORT: ' + PORT);
@@ -76,7 +75,7 @@ app.get('/healthcheck', (req, res) => {
 });
 
 // Создаем HTTP сервер
-const httpServer = createServer(app);
+const httpServer = http.createServer(app);
 
 // Создаем WebSocket сервер
 const wss = new WebSocketServer({ server: httpServer, path: '/ws' });

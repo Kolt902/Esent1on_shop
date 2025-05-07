@@ -1,1 +1,1 @@
-web: node direct-server.js
+web: node server-standalone.js

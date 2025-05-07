@@ -8,4 +8,4 @@ cmds = ["npm ci"]
 cmds = ["npx vite build"]
 
 [start]
-cmd = "node direct-server.js"
+cmd = "node server-standalone.js"
