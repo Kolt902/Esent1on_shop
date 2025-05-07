@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 nixpacksVersion = "1.17.0"
 
 [deploy]
-startCommand = "node minimal-app.cjs"
+startCommand = "node express-mini.cjs"
 healthcheckPath = "/healthcheck"
 healthcheckTimeout = 300
 healthcheckInterval = 60
@@ -12,5 +12,5 @@ restartPolicyMaxRetries = 10
 sleepApplication = false
 
 [deploy.envs]
-PORT = { default = 8080 }
+PORT = { default = 3000 }
 NODE_ENV = { default = "production" }

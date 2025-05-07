@@ -1,0 +1,16 @@
+{
+  "name": "esention-store",
+  "version": "1.0.0",
+  "description": "Esention Clothing Store - Telegram Mini App",
+  "main": "express-mini.cjs",
+  "scripts": {
+    "start": "node express-mini.cjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

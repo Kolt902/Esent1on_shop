@@ -1,1 +1,1 @@
-web: node minimal-app.cjs
+web: node express-mini.cjs
