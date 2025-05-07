@@ -4,12 +4,12 @@ builder = "NIXPACKS"
 buildCommand = "./module-type-fix.sh && npx vite build"
 
 [deploy]
-# Полноценный сервер с сохранением дизайна
+# Абсолютно минимальный сервер для диагностики Railway
 healthcheckEnabled = true
 healthcheckPath = "/healthcheck"  
 restartPolicyType = "ON_FAILURE" 
 restartPolicyMaxRetries = 10
-startCommand = "node full-server.cjs"
+startCommand = "node absolutely-minimal.cjs"
 sleepApplication = false
 
 [env]
