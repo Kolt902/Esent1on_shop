@@ -30,6 +30,56 @@ try {
   console.error('Error listing directory:', err);
 }
 
+// Верификация и настройка Telegram WebApp URL
+const WEB_APP_URL = process.env.WEB_APP_URL || 'https://esentioshop-production-up.up.railway.app';
+console.log(`Telegram WebApp URL: ${WEB_APP_URL}`);
+
+// Регистрация бота в системе Telegram
+if (process.env.TELEGRAM_BOT_TOKEN) {
+  console.log('Telegram Bot Token found, initializing bot...');
+  try {
+    const telegramApiUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
+    
+    // Настройка меню бота с кнопкой WebApp
+    const setMenuButtonPromise = fetch(`${telegramApiUrl}/setMyCommands`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        commands: [
+          { command: 'start', description: 'Запустить бота' },
+          { command: 'shop', description: 'Открыть магазин' },
+          { command: 'help', description: 'Получить помощь' }
+        ]
+      })
+    });
+    
+    const setWebAppPromise = fetch(`${telegramApiUrl}/setChatMenuButton`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        menu_button: {
+          type: 'web_app',
+          text: 'Открыть магазин',
+          web_app: { url: WEB_APP_URL }
+        }
+      })
+    });
+    
+    Promise.all([setMenuButtonPromise, setWebAppPromise])
+      .then(responses => Promise.all(responses.map(r => r.json())))
+      .then(results => {
+        console.log('Telegram bot initialization results:', results);
+      })
+      .catch(error => {
+        console.error('Error initializing Telegram bot:', error);
+      });
+  } catch (error) {
+    console.error('Failed to initialize Telegram bot:', error);
+  }
+} else {
+  console.warn('TELEGRAM_BOT_TOKEN not provided, skipping bot initialization');
+}
+
 // Найти директорию с клиентскими файлами
 let staticDir = './public';
 if (!fs.existsSync(staticDir)) {
@@ -61,6 +111,22 @@ app.get('/healthcheck', (req, res) => {
 app.post('/telegram-init', (req, res) => {
   console.log('Received Telegram WebApp init data');
   res.json({ status: 'ok', telegramInitReceived: true });
+});
+
+// API подтверждение для Telegram WebApp - очень важно для работы внутри Telegram
+app.get('/telegram-check', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  console.log('Telegram WebApp validation check');
+  res.status(200).send('OK');
+});
+
+// Обработка CORS preflight-запросов для Telegram
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.status(204).end();
 });
 
 // API заглушки
@@ -132,6 +198,21 @@ app.get('*', (req, res) => {
               const infoElement = document.getElementById('telegram-info');
               if (window.Telegram && window.Telegram.WebApp) {
                 infoElement.innerHTML = '<p style="color: green;">Telegram Mini App инициализирован успешно!</p>';
+                
+                // Активируем расширенные возможности Telegram WebApp
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+                
+                // Убираем сообщение про ошибку для Telegram
+                const mainButton = window.Telegram.WebApp.MainButton;
+                if (mainButton) {
+                  mainButton.setText('Открыть магазин');
+                  mainButton.onClick(function() {
+                    // При клике перенаправляем на главную страницу
+                    window.location.href = '/';
+                  });
+                  mainButton.show();
+                }
                 
                 // Отправляем данные инициализации на сервер
                 fetch('/telegram-init', {
