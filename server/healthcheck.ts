@@ -11,15 +11,26 @@ export function setupHealthCheck(app: Express): void {
   // Подробный хелсчек для внутреннего использования
   app.get('/health', async (req, res) => {
     try {
-      // Проверяем подключение к базе данных
-      await pool.query('SELECT 1');
-      res.status(200).json({
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        db_connection: 'ok',
-        environment: process.env.NODE_ENV || 'development',
-        version: process.env.npm_package_version || '1.0.0'
-      });
+      // Проверяем подключение к базе данных если оно существует
+      if (pool) {
+        await pool.query('SELECT 1');
+        res.status(200).json({
+          status: 'ok',
+          timestamp: new Date().toISOString(),
+          db_connection: 'ok',
+          environment: process.env.NODE_ENV || 'development',
+          version: process.env.npm_package_version || '1.0.0'
+        });
+      } else {
+        // Если соединения с базой нет
+        res.status(200).json({
+          status: 'ok',
+          timestamp: new Date().toISOString(),
+          db_connection: 'disabled',
+          environment: process.env.NODE_ENV || 'development',
+          note: 'Running without database connection'
+        });
+      }
     } catch (error) {
       console.error('Health check error:', error);
       // Всегда возвращаем 200 для хелсчеков

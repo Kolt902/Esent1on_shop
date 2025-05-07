@@ -19,6 +19,11 @@ import {
   insertDeliveryAddressSchema
 } from "@shared/schema";
 
+// Проверяем доступность базы данных и выводим предупреждение
+if (!db) {
+  console.warn("ВНИМАНИЕ: База данных недоступна. Используется заглушка для DatabaseStorage.");
+}
+
 // Type for DeliveryAddress
 type DeliveryAddress = typeof deliveryAddresses.$inferSelect;
 // Type for InsertDeliveryAddress

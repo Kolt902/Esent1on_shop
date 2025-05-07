@@ -5,11 +5,28 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
+// В производственном окружении уже проверили подключение к базе в start.js
 if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+  console.warn(
+    "DATABASE_URL не задан. Некоторые функции будут недоступны.",
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+// Создаем соединение с базой только если DATABASE_URL существует
+let pool: Pool | null = null;
+let db: any = null;
+
+try {
+  if (process.env.DATABASE_URL) {
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    db = drizzle({ client: pool, schema });
+    console.log("Соединение с базой данных установлено");
+  } else {
+    console.warn("Запуск без соединения с базой данных");
+  }
+} catch (err) {
+  console.error("Ошибка при подключении к базе данных:", err);
+  console.warn("Продолжение работы без базы данных");
+}
+
+export { pool, db };
