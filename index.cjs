@@ -1,16 +1,13 @@
+#!/usr/bin/env node
+
 /**
- * Супер простой автономный сервер для Railway с использованием ES модулей
+ * Супер простой автономный сервер для Railway с использованием CommonJS
  */
 
-import express from 'express';
-import http from 'http';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-// Правильное получение __dirname в ES модулях
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require('express');
+const http = require('http');
+const path = require('path');
+const fs = require('fs');
 
 // Создаем Express приложение
 const app = express();
@@ -21,7 +18,7 @@ const PORT = process.env.PORT || 8080;
 process.env.NODE_ENV = 'production';
 
 // Диагностическая информация
-console.log('===== MINIMAL SERVER (ES MODULE) =====');
+console.log('===== MINIMAL SERVER (COMMONJS) =====');
 console.log('Working directory: ' + process.cwd());
 console.log('__dirname: ' + __dirname);
 console.log('Files in directory:');

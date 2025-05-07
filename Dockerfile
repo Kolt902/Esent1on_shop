@@ -22,4 +22,4 @@ ENV NODE_ENV=production \
     PORT=8080
 
 # Запускаем приложение
-CMD ["node", "index.js"]
+CMD ["node", "index.cjs"]
