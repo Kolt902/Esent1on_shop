@@ -1,1 +1,1 @@
-web: ./start.js
+web: npm run start

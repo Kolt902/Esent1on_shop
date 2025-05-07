@@ -8,4 +8,4 @@ cmds = ["npm ci"]
 cmds = ["node railway-build.js"]
 
 [start]
-cmd = "node start.js"
+cmd = "npm run start"
