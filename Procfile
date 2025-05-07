@@ -1,1 +1,1 @@
-web: node direct-server.js
+web: node direct-server.cjs
