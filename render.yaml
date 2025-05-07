@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: esention-store
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npx vite build
+    startCommand: node index.cjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        fromDatabase:
+          name: esention-db
+          property: connectionString
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+
+databases:
+  - name: esention-db
+    plan: free
