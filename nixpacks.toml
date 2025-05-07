@@ -8,4 +8,4 @@ cmds = ["npm ci"]
 cmds = ["node railway-build.js"]
 
 [start]
-cmd = "NODE_ENV=production node dist/index.js"
+cmd = "node start.js"

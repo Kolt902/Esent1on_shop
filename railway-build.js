@@ -27,8 +27,8 @@ try {
   console.log('🔄 Копирование server/index.ts в dist/index.js...');
   const serverCode = fs.readFileSync(resolve(__dirname, 'server/index.ts'), 'utf8');
   
-  // Заменяем импорты с алиасами на относительные пути
-  const transformedCode = serverCode
+  // Заменяем импорты с алиасами на относительные пути и устанавливаем NODE_ENV=production
+  let transformedCode = "process.env.NODE_ENV = 'production';\n" + serverCode
     .replace(/from\s+["']@shared\/(.*?)["']/g, 'from "../shared/$1"')
     .replace(/from\s+["']@server\/(.*?)["']/g, 'from "./$1"')
     .replace(/\.ts["']/g, '.js"');
